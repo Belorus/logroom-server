@@ -2,7 +2,7 @@
 
 ## Install:
 ```
-npm install https://github.com/Belorus/logroom-server.git
+npm install git+ssh://git@github.com:Belorus/logroom-server.git
 ```
 
 ## Usage:
@@ -34,68 +34,58 @@ LogRoomServer.getInstance().init_ws();
   ]
 }
 ```
-- WebSocket
+- WebSocket uses socket.io library:
 ```
-# Send 'push_log' to add new log. Message:
-{
-  "command": "push_log",
-  "data": {
-    "session_id": "fa9d8350-a167-44ca-a2b4-829157416cef",
-    "seq_number": 1,
-    "log": {
-      "categories": [],
-      "level": "INFO ",
-      "message": ">>> LogManager initialized successfully. UTC time: Thu, 03 May 2018 13:03:56 GMT",
-      "tag": "XLog.LogManager",
-      "thread": 4,
-      "timestamp": 1525363436287
-    }
-  }
-}
-# Send 'push_logs' to add list of logs. Message:
-{
-  "command": "push_logs",
-  "data": {
-    "session_id": "fa9d8350-a167-44ca-a2b4-829157416cef",
-    "seq_number": 1,
-    "logs": [
-      {
-        "categories": [],
-        "level": "INFO ",
-        "message": ">>> LogManager initialized successfully. UTC time: Thu, 03 May 2018 13:03:56 GMT",
-        "tag": "XLog.LogManager",
-        "thread": 4,
-        "timestamp": 1525363436287
-      }
-    ],
-    "additional": {
-        "os": "iOS",
-        "os_version": "11.4.0"
-    }
-  }
-}
 # Get active sessions at this moment
-{
-  "command": "get_active_sessions",
-  "data": {
-    "callback": "logroom-callback-0"
+socket.emit("get_active_sessions");
+# Get sessions list
+socket.emit("get_session_list", {
+  "page": 1,
+  "filter": {
+    "os": "iOS",
+    "os_version": "11.4.0"
   }
-}
+});
+# Get logs by session
+socket.emit("get_logs_by_session", {
+  "session_id": "fa9d8350-a167-44ca-a2b4-829157416cef",
+  "page": 1
+});
 # Listen session
-{
-  "command": "listen_session",
-  "data": {
-    "session_id": "fa9d8350-a167-44ca-a2b4-829157416cef"
-  }
-}
+socket.emit("listen_session", {
+  "session_id": "fa9d8350-a167-44ca-a2b4-829157416cef"
+});
 # Stop listen session
-{
-  "command": "stop_listen_session",
-  "data": {
-    "session_id": "fa9d8350-a167-44ca-a2b4-829157416cef"
-  }
-}
+socket.emit("stop_listen_session", {
+  "session_id": "fa9d8350-a167-44ca-a2b4-829157416cef"
+});
+# Listen active sessions
+socket.emit("listen_active_sessions");
+# Stop listen active sessions
+socket.emit("stop_listen_session");
 ```
+- WebSocket commands back:
+
+`sendActiveSessions`: Result of sending `get_active_sessions`
+
+`listen_session`: Result of sending `listen_session`
+
+`stopLogsObserver`: Result of sending `stop_listen_session`
+
+`listen_active_sessions`: Result of sending `listen_active_sessions`
+
+`stop_listen_active_sessions`: Result of sending `stop_listen_active_sessions`
+
+`get_session_list`: Result of sending `get_session_list`
+
+`get_logs_by_session`: Result of sending `get_logs_by_session`
+
+`sessionLogsObserver`: Send back logs by session
+
+`publish_session`: Send back active session info
+
+`unknown_command`: Will be sent back if some command does not exists
+
 
 ## Options:
 `--help`: Give the help list
@@ -123,3 +113,5 @@ LogRoomServer.getInstance().init_ws();
 `--mysql.user`: User name to use when connecting to MySQL server
 
 `--mysql.secret`: Password to use when connecting to MySQL server
+
+`--http.access_control_allow_origin`: Access-Control-Allow-Origin
